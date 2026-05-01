@@ -17,21 +17,22 @@ st.set_page_config(
 # ================== تحميل الموديل من Google Drive ==================
 @st.cache_resource
 def load_model():
-    # إنشاء مجلد model لو مش موجود
-    os.makedirs("model", exist_ok=True)
+    model_path = "model/best_pneumonia_model.h5"   # المسار الصحيح
     
-    model_path = "model/best_pneumonia_model.h5"
+    # رابط الموديل الجديد (اللي رفعيه)
+    url = "https://drive.google.com/uc?id=1znXRCYbXE2AoCg0AYhukNHZr61PPoRR_&confirm=t"
     
-    # لو الملف مش موجود، حمله من Google Drive
     if not os.path.exists(model_path):
-        url = "https://drive.google.com/uc?export=download&id=1sU4IttL2dPHv9mfERgqBpM7ij0t3ih0d"
-        gdown.download(url, model_path, quiet=False)
+        os.makedirs("model", exist_ok=True)
+        with st.spinner("📥 Downloading model... (حوالي 30-60 ثانية)"):
+            try:
+                gdown.download(url, model_path, quiet=False, fuzzy=True)
+                st.success("✅ Model downloaded successfully!")
+            except Exception as e:
+                st.error(f"❌ Failed to download model: {str(e)}")
+                st.stop()
     
     return tf.keras.models.load_model(model_path)
-
-model = load_model()
-
-CLASS_NAMES = {0: "Normal", 1: "Bacterial Pneumonia", 2: "Viral Pneumonia"}
 
 # ================== معالجة الصورة ==================
 def preprocess_image(image):
