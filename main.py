@@ -14,28 +14,30 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ================== تحميل الموديل ==================
 @st.cache_resource
 def load_model():
     model_path = "model/best_pneumonia_model.h5"
     
-    # رابط الموديل المعدل
-    url = "https://drive.google.com/uc?id=1znXRCYbXE2AoCg0AYhukNHZr61PPoRR_&confirm=t&export=download"
+    url = "https://drive.google.com/uc?id=1znXRCYbXE2AoCg0AYhukNHZr61PPoRR_&export=download"
     
     if not os.path.exists(model_path):
         os.makedirs("model", exist_ok=True)
-        with st.spinner("📥 Downloading model... (30-60 ثانية)"):
+        with st.spinner("📥 Downloading model... (This may take 40-70 seconds)"):
             try:
-                gdown.download(url, model_path, quiet=False, fuzzy=True)
+                import requests
+                response = requests.get(url, stream=True)
+                response.raise_for_status()
+                
+                with open(model_path, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+                
                 st.success("✅ Model downloaded successfully!")
             except Exception as e:
                 st.error(f"❌ Download failed: {e}")
                 st.stop()
     
     return tf.keras.models.load_model(model_path)
-
-# تحميل الموديل
-model = load_model()
 
 # ================== التصنيفات ==================
 CLASS_NAMES = {0: "Normal", 1: "Bacterial Pneumonia", 2: "Viral Pneumonia"}
